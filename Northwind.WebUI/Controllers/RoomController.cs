@@ -51,7 +51,7 @@ namespace Northwind.WebUI.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Delete(int id)
         {
-            await Mediator.Send(new DeleteRoomCommand { Id = id });
+            await Mediator.Send(new DeleteRoomCommand { RoomId = id });
 
             return NoContent();
         }

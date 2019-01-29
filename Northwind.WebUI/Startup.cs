@@ -18,6 +18,7 @@ using Northwind.Infrastructure;
 using Northwind.Persistence;
 using Northwind.WebUI.Filters;
 using NSwag.AspNetCore;
+using Swashbuckle.AspNetCore.Swagger;
 using System.Reflection;
 
 namespace Northwind.WebUI
@@ -67,6 +68,7 @@ namespace Northwind.WebUI
             {
                 configuration.RootPath = "ClientApp/dist";
             });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -109,7 +111,7 @@ namespace Northwind.WebUI
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseProxyToSpaDevelopmentServer("http://localhost:4200");
+                    spa.UseProxyToSpaDevelopmentServer("http://localhost:52467");
                 }
             });
         }

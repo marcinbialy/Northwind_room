@@ -132,6 +132,70 @@ export class AdminClient implements IAdminClient {
     }
 }
 
+export interface ICalendarClient {
+    getAll(): Observable<CalendarListViewModel | null>;
+}
+
+@Injectable()
+export class CalendarClient implements ICalendarClient {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : "";
+    }
+
+    getAll(): Observable<CalendarListViewModel | null> {
+        let url_ = this.baseUrl + "/api/Calendar/GetAll";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetAll(<any>response_);
+                } catch (e) {
+                    return <Observable<CalendarListViewModel | null>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<CalendarListViewModel | null>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGetAll(response: HttpResponseBase): Observable<CalendarListViewModel | null> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? CalendarListViewModel.fromJS(resultData200) : <any>null;
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<CalendarListViewModel | null>(<any>null);
+    }
+}
+
 export interface ICategoriesClient {
     getCategoryPreview(categoryId: number): Observable<CategoryPreviewDto[] | null>;
 }
@@ -742,6 +806,279 @@ export class ProductsClient implements IProductsClient {
     }
 }
 
+export interface IRoomClient {
+    getAll(): Observable<RoomsListViewModel | null>;
+    get(id: number): Observable<RoomViewModel | null>;
+    create(command: CreateRoomCommand): Observable<number>;
+    update(id: number, command: UpdateRoomCommand): Observable<RoomDto | null>;
+    delete(id: number): Observable<void>;
+}
+
+@Injectable()
+export class RoomClient implements IRoomClient {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : "";
+    }
+
+    getAll(): Observable<RoomsListViewModel | null> {
+        let url_ = this.baseUrl + "/api/Room/GetAll";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetAll(<any>response_);
+                } catch (e) {
+                    return <Observable<RoomsListViewModel | null>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<RoomsListViewModel | null>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGetAll(response: HttpResponseBase): Observable<RoomsListViewModel | null> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? RoomsListViewModel.fromJS(resultData200) : <any>null;
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<RoomsListViewModel | null>(<any>null);
+    }
+
+    get(id: number): Observable<RoomViewModel | null> {
+        let url_ = this.baseUrl + "/api/Room/Get/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGet(<any>response_);
+                } catch (e) {
+                    return <Observable<RoomViewModel | null>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<RoomViewModel | null>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGet(response: HttpResponseBase): Observable<RoomViewModel | null> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? RoomViewModel.fromJS(resultData200) : <any>null;
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<RoomViewModel | null>(<any>null);
+    }
+
+    create(command: CreateRoomCommand): Observable<number> {
+        let url_ = this.baseUrl + "/api/Room/Create";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCreate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCreate(<any>response_);
+                } catch (e) {
+                    return <Observable<number>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<number>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processCreate(response: HttpResponseBase): Observable<number> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 !== undefined ? resultData200 : <any>null;
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<number>(<any>null);
+    }
+
+    update(id: number, command: UpdateRoomCommand): Observable<RoomDto | null> {
+        let url_ = this.baseUrl + "/api/Room/Update/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(command);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("put", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processUpdate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processUpdate(<any>response_);
+                } catch (e) {
+                    return <Observable<RoomDto | null>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<RoomDto | null>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processUpdate(response: HttpResponseBase): Observable<RoomDto | null> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? RoomDto.fromJS(resultData200) : <any>null;
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<RoomDto | null>(<any>null);
+    }
+
+    delete(id: number): Observable<void> {
+        let url_ = this.baseUrl + "/api/Room/Delete/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("delete", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processDelete(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processDelete(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processDelete(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+}
+
 export class EmployeeManagerModel implements IEmployeeManagerModel {
     employeeId?: string | undefined;
     employeeFirstName?: string | undefined;
@@ -844,6 +1181,90 @@ export class ChangeEmployeesManagerCommand implements IChangeEmployeesManagerCom
 export interface IChangeEmployeesManagerCommand {
     employeeId?: number;
     managerId?: number;
+}
+
+export class CalendarListViewModel implements ICalendarListViewModel {
+    calendars?: CalendarDto[] | undefined;
+
+    constructor(data?: ICalendarListViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["calendars"] && data["calendars"].constructor === Array) {
+                this.calendars = [];
+                for (let item of data["calendars"])
+                    this.calendars.push(CalendarDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CalendarListViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarListViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.calendars && this.calendars.constructor === Array) {
+            data["calendars"] = [];
+            for (let item of this.calendars)
+                data["calendars"].push(item.toJSON());
+        }
+        return data; 
+    }
+}
+
+export interface ICalendarListViewModel {
+    calendars?: CalendarDto[] | undefined;
+}
+
+export class CalendarDto implements ICalendarDto {
+    calendarId?: number;
+    calendarDate?: Date;
+
+    constructor(data?: ICalendarDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.calendarId = data["calendarId"];
+            this.calendarDate = data["calendarDate"] ? new Date(data["calendarDate"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): CalendarDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["calendarId"] = this.calendarId;
+        data["calendarDate"] = this.calendarDate ? this.calendarDate.toISOString() : <any>undefined;
+        return data; 
+    }
+}
+
+export interface ICalendarDto {
+    calendarId?: number;
+    calendarDate?: Date;
 }
 
 export class CategoryPreviewDto implements ICategoryPreviewDto {
@@ -1548,6 +1969,326 @@ export interface IUpdateProductCommand {
     supplierId?: number | undefined;
     categoryId?: number | undefined;
     discontinued?: boolean;
+}
+
+export class RoomsListViewModel implements IRoomsListViewModel {
+    rooms?: RoomDto[] | undefined;
+
+    constructor(data?: IRoomsListViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["rooms"] && data["rooms"].constructor === Array) {
+                this.rooms = [];
+                for (let item of data["rooms"])
+                    this.rooms.push(RoomDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RoomsListViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomsListViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.rooms && this.rooms.constructor === Array) {
+            data["rooms"] = [];
+            for (let item of this.rooms)
+                data["rooms"].push(item.toJSON());
+        }
+        return data; 
+    }
+}
+
+export interface IRoomsListViewModel {
+    rooms?: RoomDto[] | undefined;
+}
+
+export class RoomDto implements IRoomDto {
+    roomId?: number;
+    roomName?: string | undefined;
+
+    constructor(data?: IRoomDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.roomId = data["roomId"];
+            this.roomName = data["roomName"];
+        }
+    }
+
+    static fromJS(data: any): RoomDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["roomName"] = this.roomName;
+        return data; 
+    }
+}
+
+export interface IRoomDto {
+    roomId?: number;
+    roomName?: string | undefined;
+}
+
+export class RoomViewModel implements IRoomViewModel {
+    roomId?: number;
+    roomName?: string | undefined;
+    calendars?: Calendar[] | undefined;
+
+    constructor(data?: IRoomViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.roomId = data["roomId"];
+            this.roomName = data["roomName"];
+            if (data["calendars"] && data["calendars"].constructor === Array) {
+                this.calendars = [];
+                for (let item of data["calendars"])
+                    this.calendars.push(Calendar.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RoomViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["roomName"] = this.roomName;
+        if (this.calendars && this.calendars.constructor === Array) {
+            data["calendars"] = [];
+            for (let item of this.calendars)
+                data["calendars"].push(item.toJSON());
+        }
+        return data; 
+    }
+}
+
+export interface IRoomViewModel {
+    roomId?: number;
+    roomName?: string | undefined;
+    calendars?: Calendar[] | undefined;
+}
+
+export class Calendar implements ICalendar {
+    calendarId?: number;
+    calendarDate?: Date;
+    room?: Room | undefined;
+
+    constructor(data?: ICalendar) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.calendarId = data["calendarId"];
+            this.calendarDate = data["calendarDate"] ? new Date(data["calendarDate"].toString()) : <any>undefined;
+            this.room = data["room"] ? Room.fromJS(data["room"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): Calendar {
+        data = typeof data === 'object' ? data : {};
+        let result = new Calendar();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["calendarId"] = this.calendarId;
+        data["calendarDate"] = this.calendarDate ? this.calendarDate.toISOString() : <any>undefined;
+        data["room"] = this.room ? this.room.toJSON() : <any>undefined;
+        return data; 
+    }
+}
+
+export interface ICalendar {
+    calendarId?: number;
+    calendarDate?: Date;
+    room?: Room | undefined;
+}
+
+export class Room implements IRoom {
+    roomId?: number;
+    roomName?: string | undefined;
+    calendars?: Calendar[] | undefined;
+
+    constructor(data?: IRoom) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.roomId = data["roomId"];
+            this.roomName = data["roomName"];
+            if (data["calendars"] && data["calendars"].constructor === Array) {
+                this.calendars = [];
+                for (let item of data["calendars"])
+                    this.calendars.push(Calendar.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): Room {
+        data = typeof data === 'object' ? data : {};
+        let result = new Room();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["roomName"] = this.roomName;
+        if (this.calendars && this.calendars.constructor === Array) {
+            data["calendars"] = [];
+            for (let item of this.calendars)
+                data["calendars"].push(item.toJSON());
+        }
+        return data; 
+    }
+}
+
+export interface IRoom {
+    roomId?: number;
+    roomName?: string | undefined;
+    calendars?: Calendar[] | undefined;
+}
+
+export class CreateRoomCommand implements ICreateRoomCommand {
+    roomName?: string | undefined;
+
+    constructor(data?: ICreateRoomCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.roomName = data["roomName"];
+        }
+    }
+
+    static fromJS(data: any): CreateRoomCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateRoomCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomName"] = this.roomName;
+        return data; 
+    }
+}
+
+export interface ICreateRoomCommand {
+    roomName?: string | undefined;
+}
+
+export class UpdateRoomCommand implements IUpdateRoomCommand {
+    roomId?: number;
+    roomName?: string | undefined;
+    calendars?: Calendar[] | undefined;
+
+    constructor(data?: IUpdateRoomCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.roomId = data["roomId"];
+            this.roomName = data["roomName"];
+            if (data["calendars"] && data["calendars"].constructor === Array) {
+                this.calendars = [];
+                for (let item of data["calendars"])
+                    this.calendars.push(Calendar.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): UpdateRoomCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateRoomCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["roomName"] = this.roomName;
+        if (this.calendars && this.calendars.constructor === Array) {
+            data["calendars"] = [];
+            for (let item of this.calendars)
+                data["calendars"].push(item.toJSON());
+        }
+        return data; 
+    }
+}
+
+export interface IUpdateRoomCommand {
+    roomId?: number;
+    roomName?: string | undefined;
+    calendars?: Calendar[] | undefined;
 }
 
 export interface FileResponse {

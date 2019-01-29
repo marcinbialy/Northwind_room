@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Northwind.Application.Exceptions;
 using Northwind.Domain.Entities;
@@ -15,24 +16,24 @@ namespace Northwind.Application.Rooms.Queries.GetRoomDetails
     public class GetRoomQueryHandler : IRequestHandler<GetRoomQuery, RoomViewModel>
     {
         private readonly NorthwindDbContext _context;
-       
-        public GetRoomQueryHandler(NorthwindDbContext context)
+        private readonly IMapper _mapper;
+
+        public GetRoomQueryHandler(NorthwindDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<RoomViewModel> Handle(GetRoomQuery request, CancellationToken cancellationToken)
         {
-            var room = await _context.Rooms.Where(r => r.RoomId == request.RoomId).SingleOrDefaultAsync(cancellationToken);
+            var room = _mapper.Map<RoomViewModel>(await _context.Rooms.Where(r => r.RoomId == request.RoomId).SingleOrDefaultAsync(cancellationToken));
 
             if (room == null)
             {
                 throw new NotFoundException(nameof(Room), request.RoomId);
             }
 
-            var model = new RoomViewModel();
-
-            return model;
+            return room;
         }
     }
 }
