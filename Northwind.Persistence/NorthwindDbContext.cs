@@ -35,6 +35,10 @@ namespace Northwind.Persistence
 
         public DbSet<User> Users { get; set; }
 
+        public DbSet<Room> Rooms { get; set; }
+
+        public DbSet<Calendar> Calendars { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(NorthwindDbContext).Assembly);

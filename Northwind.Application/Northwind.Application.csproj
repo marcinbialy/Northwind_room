@@ -18,4 +18,9 @@
     <ProjectReference Include="..\Northwind.Persistence\Northwind.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Rooms\Commands\" />
+    <Folder Include="Rooms\Queries\" />
+  </ItemGroup>
+
 </Project>
