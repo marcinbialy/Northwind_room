@@ -18,10 +18,4 @@
     <ProjectReference Include="..\Northwind.Persistence\Northwind.Persistence.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Rooms\Queries\GetRooms\" />
-    <Folder Include="Rooms\Queries\GetRoomDetails\" />
-    <Folder Include="Rooms\Queries\GetRoomCalendar\" />
-  </ItemGroup>
-
 </Project>
